@@ -52,26 +52,31 @@ app.get('/jobs', async (req , res) => {
     }
 });
 
-app.get('/numberOfEmployees', async (req , res) => {
+app.get('/totalNumbers', async(req,res) => {
     try{
-        const result = await pool.query(`
-                                    select count(employee_id) from employees
-                                             `);
-        res.json(result.rows);
-    } catch (err){
+        const [numberEmployees, numberDepartments, numberJobs, numberJobHistory, numberLocations, numberCountries, numberRegions] = await Promise.all([
+            pool.query(`select count(*) as count from employees`),
+            pool.query(`select count(*) as count from departments`),
+            pool.query(`select count(*) as count from jobs`),
+            pool.query(`select count(*) as count from job_history`),
+            pool.query(`select count(*) as count from locations`),
+            pool.query(`select count(*) as count from countries`),
+            pool.query(`select count(*) as count from regions`)
+        ])
+        res.json({
+            employees : parseInt(numberEmployees.rows[0].count),
+            departments : parseInt(numberDepartments.rows[0].count),
+            jobs : parseInt(numberJobs.rows[0].count),
+            jobHistory : parseInt(numberJobHistory.rows[0].count),
+            locations : parseInt(numberLocations.rows[0].count),
+            countries : parseInt(numberCountries.rows[0].count),
+            regions : parseInt(numberRegions.rows[0].count),
+        })
+    }catch(err){
         res.status(500).json({Error : err.message});
     }
 });
-app.get('/numberOfDepartments', async (req , res) => {
-    try{
-        const result = await pool.query(`
-                                    select count(department_id) from departments
-                                             `);
-        res.json(result.rows);
-    } catch (err){
-        res.status(500).json({Error : err.message});
-    }
-});
+
 
 app.get('/regionsCountriesLocations', async (req , res) => {
     try{
